@@ -25,9 +25,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    sock = socket(PF_INET, SOCK_STREAM, 0); //소켓을 생성하고 있다.
-    //소켓을 생성하는 순간에는 서버 소켓과 클라이언트 소켓으로 나뉘지 않는다.
-    //bind listen함수의 호출이 이어지면 서버 소켓, connect 함수의 호출로 이어지면 클라이언트 소켓
+    sock = socket(PF_INET, SOCK_STREAM, 0); 
     if (sock == -1)
         errorHandling("socket() error");
 
@@ -36,24 +34,17 @@ int main(int argc, char *argv[])
     servAddr.sin_addr.s_addr = inet_addr(argv[1]);
     servAddr.sin_port = htons(atoi(argv[2]));
 
-    if (connect(sock, (struct sockaddr*)&servAddr, sizeof(servAddr)) == -1) //connect 함수호출을 통해서 서버 프로그램에 연결 요청
+    if (connect(sock, (struct sockaddr*)&servAddr, sizeof(servAddr)) == -1) 
         errorHandling("connect() error");
-
-    // strLen = read(sock, message, sizeof(message) - 1);
-    // if (strLen == -1)
-    //     errorHandling("read() error");
-    // printf("Message from server:%s\n", message);
 
     printf(">> Connected in %s:%d\n", inet_ntoa(servAddr.sin_addr), ntohs(servAddr.sin_port));
 
-    // char sendBuf[BUFSIZE];
     memset(sendBuf, 0, sizeof(sendBuf));
     printf("You(Client): ");
     fgets(sendBuf, BUFSIZE, stdin);
     if (write(sock, sendBuf, sizeof(sendBuf)) == -1)
         errorHandling("CLIENT write() error");
-    
-    //char recvBuf[BUFSIZE];
+
     memset(recvBuf, 0, sizeof(recvBuf));
     if (read(sock, recvBuf, sizeof(recvBuf)-1) == -1)
         errorHandling("CLEINT read() error");
