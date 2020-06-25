@@ -16,8 +16,6 @@ int main(int argc, char *argv[])
     char message[30];
     int strLen;
 
-    char sendBuf[BUFSIZE];
-    char recvBuf[BUFSIZE];
 
     if (argc != 3)
     {
@@ -39,16 +37,28 @@ int main(int argc, char *argv[])
 
     printf(">> Connected in %s:%d\n", inet_ntoa(servAddr.sin_addr), ntohs(servAddr.sin_port));
 
-    memset(sendBuf, 0, sizeof(sendBuf));
-    printf("You(Client): ");
-    fgets(sendBuf, BUFSIZE, stdin);
-    if (write(sock, sendBuf, sizeof(sendBuf)) == -1)
-        errorHandling("CLIENT write() error");
+    while(1) {
+        char sendBuf[BUFSIZE];
+        memset(sendBuf, 0, sizeof(sendBuf));
+        printf("You(Client): ");
+        fgets(sendBuf, BUFSIZE, stdin);
 
-    memset(recvBuf, 0, sizeof(recvBuf));
-    if (read(sock, recvBuf, sizeof(recvBuf)-1) == -1)
-        errorHandling("CLEINT read() error");
-    printf("Server: %s", recvBuf);
+        if (write(sock, sendBuf, sizeof(sendBuf)) == -1)
+            errorHandling("CLIENT write() error");
+            
+        if (strcmp(sendBuf, "exit\n") == 0) break;
+
+        char recvBuf[BUFSIZE];
+        memset(recvBuf, 0, sizeof(recvBuf));
+        if (read(sock, recvBuf, sizeof(recvBuf)) == -1)
+            errorHandling("CLIENT read() error");
+        printf("Server: %s", recvBuf);
+
+        if (strcmp(recvBuf, "exit\n") == 0) {
+            printf("SERVER disconnected\n");
+            break;
+        }
+    }
     
     close(socket);
     return 0;

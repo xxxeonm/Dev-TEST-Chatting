@@ -18,10 +18,6 @@ int main(int argc, char *argv[])
     struct sockaddr_in clntAddr;
     socklen_t clntAddrSize;
 
-    char message[] = "Hello World!"; 
-
-    char sendBuf[BUFSIZE];
-    char recvBuf[BUFSIZE];
 
     if (argc != 2)
     {
@@ -52,16 +48,29 @@ int main(int argc, char *argv[])
 
     printf(">> %s:%d is connecting ...\n",inet_ntoa(clntAddr.sin_addr), ntohs(clntAddr.sin_port));
 
-    memset(&recvBuf, 0, sizeof(recvBuf));
-    if (read(clntSock, recvBuf, sizeof(recvBuf)-1) == -1)
-        errorHandling("SERVER read() error");
-    printf("Client: %s", recvBuf);
-    
-    memset(&sendBuf, 0, sizeof(sendBuf));
-    printf("You(Server): ");
-    fgets(sendBuf, BUFSIZE, stdin);
-    if (write(clntSock, sendBuf, sizeof(sendBuf)) == -1)
-        errorHandling("SERVER write() error");
+    while(1) {
+        char recvBuf[BUFSIZE];
+        memset(&recvBuf, 0, sizeof(recvBuf));
+        if (read(clntSock, recvBuf, sizeof(recvBuf)) == -1)
+            errorHandling("SERVER read() error");
+        printf("Client: %s", recvBuf);
+        
+        if (strcmp(recvBuf, "exit\n") == 0) {
+            printf("CLIENT disconnected\n");
+            break;
+        }
+
+        char sendBuf[BUFSIZE];
+        memset(&sendBuf, 0, sizeof(sendBuf));
+        printf("You(Server): ");
+        fgets(sendBuf, BUFSIZE, stdin);
+
+        if (write(clntSock, sendBuf, sizeof(sendBuf)) == -1)
+            errorHandling("SERVER write() error");
+            
+        if (strcmp(sendBuf, "exit\n") == 0) break;
+
+    }
     
     close(clntSock);
     close(servSock);
