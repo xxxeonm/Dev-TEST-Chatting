@@ -13,12 +13,12 @@ int main(int argc, char *argv[])
 {
     int servSock;
     int clntSock;
+    int clntNum = 0;
     int pid;
 
     struct sockaddr_in servAddr;
     struct sockaddr_in clntAddr;
     socklen_t clntAddrSize;
-
 
     if (argc != 2)
     {
@@ -44,17 +44,18 @@ int main(int argc, char *argv[])
     clntAddrSize = sizeof(clntAddr);
 
     while (1) {
-        clntSock = accept(servSock, (struct sockaddr*)&clntAddr, &clntAddrSize); 
+        clntSock = accept(servSock, (struct sockaddr *)&clntAddr, &clntAddrSize); 
+        if (clntSock == -1) {
+            errorHandling("accept() error");
+            exit(0);
+        }
+
+        printf(">> %s:%d is connecting ...\n",inet_ntoa(clntAddr.sin_addr), ntohs(clntAddr.sin_port));
+        clntNum++;
+        printf(">> Current User: %d\n", clntNum);
 
         pid = fork();
         if (pid == 0) {
-            if (clntSock == -1) {
-                errorHandling("accept() error");
-                exit(0);
-            }
-
-            printf(">> %s:%d is connecting ...\n",inet_ntoa(clntAddr.sin_addr), ntohs(clntAddr.sin_port));
-
             while(1) {
                 char recvBuf[BUFSIZE];
                 memset(&recvBuf, 0, sizeof(recvBuf));
@@ -64,6 +65,7 @@ int main(int argc, char *argv[])
                 
                 if (strcmp(recvBuf, "exit\n") == 0) {
                     printf("CLIENT disconnected\n");
+                    exit(0);
                     break;
                 }
 
@@ -78,6 +80,8 @@ int main(int argc, char *argv[])
                 if (strcmp(sendBuf, "exit\n") == 0) break;
 
             }
+            clntNum--;
+            printf(">> Current User: %d\n", clntNum);
         }
     }
     
